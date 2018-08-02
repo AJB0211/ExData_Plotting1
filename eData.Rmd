@@ -1,0 +1,93 @@
+---
+title: "Electric Power Consumption"
+author: "AJB0211"
+date: "August 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r libraries, echo=FALSE}
+suppressMessages(library(lubridate))
+suppressMessages(library(dplyr))
+```
+
+## Data Import
+We only need data from (d/m/y) 1/2/2007 and 2/2/2007.
+```{r import, cache=TRUE}
+srcURL <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
+
+if (!exists("elecData.zip")){
+  download.file(srcURL,destfile = "elecData.zip")
+  unzip("elecData.zip",exdir = "./elecData")
+}
+
+eData <- read.table("./elecData/household_power_consumption.txt",
+                    header=TRUE,
+                    na.strings="?",
+                    sep=";")
+
+days <- (eData$Date == "1/2/2007" | eData$Date == "2/2/2007")
+eData <- eData[days,]
+remove(days)
+```
+
+Create `dt` column for date-times in posix format using `lubridate`.
+```{r convert_date}
+eData$Date <- as.character(eData$Date)
+eData$Time <- as.character(eData$Time)
+
+eData <- eData %>% 
+  mutate(dt =parse_date_time(paste(Date,Time),"%d/%m/%y %H:%M:%S"))
+```
+
+```{r plot1}
+hist(eData$Global_active_power,
+     col="red",
+     xlab = "Global Active Power (kW)",
+     main = "Global Active Power")
+```
+
+Wrap plots 2 and 3 in functions for creation of plot 4
+```{r plot2}
+mPlot2 <- function(labsize){
+  with(eData,plot(dt,Global_active_power, 
+                  type="l",
+                  xlab="",
+                  ylab="Global Active Power (kW)",
+                  cex.lab=labsize))
+}
+mPlot2(0.9)
+```
+
+```{r plot3}
+mPlot3 <- function(cexval, labsize = 1,boxtype=1){
+  with(eData,plot(dt,Sub_metering_1,type="n",
+                  xlab="",ylab="Energy sub metering",cex.lab=labsize))
+  with(eData,points(dt,Sub_metering_1,type="l"))
+  with(eData,points(dt,Sub_metering_2,type="l",col="red"))
+  with(eData,points(dt,Sub_metering_3,type="l",col="blue"))
+  legend("topright",col=c("black","red","blue"),
+         legend=names(eData[7:9]),
+         lty=1,cex=cexval, box.lty=boxtype)
+}
+
+mPlot3(0.8)
+```
+
+I have no idea why this doesn't display, it works in the script
+```{plot 4}
+par(mfcol=c(2,2),mar=c(4,4,2,2))
+
+mPlot2(labsize=0.7)
+mPlot3(0.6,0.8,0)
+with(eData,plot(dt,Voltage,xlab="datetime",type="l",cex.lab=1))
+with(eData,plot(dt,Global_reactive_power,xlab="datetime",
+                type="l",cex.lab=0.8))
+```
+
+
+
+
+

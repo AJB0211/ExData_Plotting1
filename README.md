@@ -1,3 +1,6 @@
+# User Notes
+The plots are all produced by running `makePlots.R` which sources the 4 plotting files `plot1.R`, `plot2.R`, `plot3.R`, and `plot4.R`. This is because including imports in each individual plot file is wasteful and time consuming. The assignment should not encourage bad practice.
+
 ## Introduction
 
 This assignment uses data from
